@@ -1,6 +1,8 @@
 Build.PL
 lib/AVM/AHA.pm
 lib/AVM/AHA/Switch.pm
+README.md
 MANIFEST			This list of files
 META.yml
 META.json
+
