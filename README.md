@@ -42,6 +42,11 @@ For more information, see the manpage to AVM::AHA.
     $aha->energy("087610077197");
 ````
 
+### Disclaimer
+
+This module is in no way associated with AVM and is a private
+project. Use it on you own risk, see also below.
+
 ### License
   
 AVM::AHA is free software: you can redistribute it and/or modify it

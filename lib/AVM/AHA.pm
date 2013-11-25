@@ -33,6 +33,9 @@ This module allows programatic access to AVM's Home Automation (AHA) system as
 it is specified in L<AVM HTTP Protocol
 specification|http://www.avm.de/de/Extern/files/session_id/AHA-HTTP-Interface.pdf>. 
 
+Please note that this module is not connected to AVM in any way. It's a hobby
+project, without any warranty and no guaranteed support.
+
 Typical it is used to manage and monitor L<AVM::AHA::Switch>es. The following
 operations are supported:
 
@@ -76,7 +79,7 @@ use Digest::MD5;
 use Data::Dumper;
 use vars qw($VERSION);
 
-$VERSION = "0.50";
+$VERSION = "0.51";
 
 # Set to one if some debugging should be printed
 my $DEBUG = 0;
