@@ -79,7 +79,7 @@ use Digest::MD5;
 use Data::Dumper;
 use vars qw($VERSION);
 
-$VERSION = "0.51";
+$VERSION = "0.52";
 
 # Set to one if some debugging should be printed
 my $DEBUG = 0;
@@ -124,7 +124,7 @@ sub new {
     my $class = shift;
     my $self = {};
     my $arg1 = shift; 
-    if (!ref($arg1) eq "HASH") {
+    if (ref($arg1) ne "HASH") {
         $self->{host} = $arg1;
         $self->{password} = shift;
         $self->{user} = shift;
