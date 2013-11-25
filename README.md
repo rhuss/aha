@@ -1,6 +1,6 @@
-# AVM::AHA
+## AVM::AHA
 
-## DESCRIPTION
+### Description
 
 This small library allows programmatic access to AVM's home automation
 system. It uses the HTTP protocol as specified in
@@ -8,13 +8,16 @@ http://www.avm.de/de/Extern/files/session_id/AHA-HTTP-Interface.pdf
 
 To install and build the modules:
 
+````bash
      perl ./Build.PL
      ./Build install
+````
 
 For more information, see the manpage to AVM::AHA.
 
-## EXAMPLE
+### Example
 
+````perl
     my $aha = new AVM::AHA({host: "fritz.box", password: "s!cr!t"});
 
     # Get all switches as array ref of AVM::AHA::Switch objects
@@ -37,8 +40,9 @@ For more information, see the manpage to AVM::AHA.
 
     # ... or by AIN
     $aha->energy("087610077197");
+````
 
-## LICENSE
+### License
   
 AVM::AHA is free software: you can redistribute it and/or modify it
 under the terms of the GNU General Public License as published by the
@@ -53,6 +57,6 @@ General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with AVM::AHA.  If not, see <http://www.gnu.org/licenses/>.
 
-## AUTHOR
+### Author
 
 roland@cpan.org
