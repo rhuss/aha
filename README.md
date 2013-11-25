@@ -1,4 +1,58 @@
-avm-aha
-=======
+# AVM::AHA
 
-Perl interface to AVM's home automation HTTP API
+## DESCRIPTION
+
+This small library allows programmatic access to AVM's home automation
+system. It uses the HTTP protocol as specified in
+http://www.avm.de/de/Extern/files/session_id/AHA-HTTP-Interface.pdf
+
+To install and build the modules:
+
+     perl ./Build.PL
+     ./Build install
+
+For more information, see the manpage to AVM::AHA.
+
+## EXAMPLE
+
+    my $aha = new AVM::AHA({host: "fritz.box", password: "s!cr!t"});
+
+    # Get all switches as array ref of AVM::AHA::Switch objects
+    my $switches = $aha->list();
+
+    # For all switches found
+    for my $switch (@$switches) {
+       say "Name:    ",$switch->name();
+       say "State:   ",$switch->is_on();
+       say "Present: ",$switch->is_present()
+       say "Energy:  ",$switch->energy();
+       say "Power:   ",$switch->power();
+
+       # If switch is on, switch if off and vice versa
+       $switch->is_on() ? $switch->off() : $switch->on();
+    }
+
+    # Access switch directly via name as configured 
+    $aha->energy("Lava lamp");
+
+    # ... or by AIN
+    $aha->energy("087610077197");
+
+## LICENSE
+  
+AVM::AHA is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the
+Free Software Foundation, either version 2 of the License, or (at your
+option) any later version.
+
+AVM::AHA is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with AVM::AHA.  If not, see <http://www.gnu.org/licenses/>.
+
+## AUTHOR
+
+roland@cpan.org
