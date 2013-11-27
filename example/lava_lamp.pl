@@ -7,7 +7,7 @@
 
 =head1 DESCRIPTION
 
-Simple example how to use L<"AVM::AHA"> for controlling AVM AHA switches. I.e. 
+Simple example how to use L<"AHA"> for controlling AVM AHA switches. I.e. 
 it is used for using a Lava Lamp as a Nagios Notification handler.
 
 It also tries to check that:
@@ -71,7 +71,7 @@ my $AHA_PASSWORD = "s!cr!t";
 # AVM AHA user role (undef if no roles are in use)
 my $AHA_USER = undef;
 
-# Name of AVM switch
+# Name of AVM AHA switch
 my $AHA_SWITCH = "Lava Lamp";
 
 # Time how long the lamp should be at least be kept switched off (seconds)
@@ -110,7 +110,7 @@ my $MANUAL_DELTA = 5 * 60;
 # ============================================================================
 # End of configuration
 
-use AVM::AHA;
+use AHA;
 use Storable qw(fd_retrieve store_fd store);
 use Data::Dumper;
 use feature qw(say);
@@ -137,8 +137,8 @@ my ($aha,$switch,$is_on);
 if ($mode ne "list") {
     # Name and connection parameters
     my $name = $opts{name} || $AHA_SWITCH;
-    $aha = new AVM::AHA($AHA_HOST,$AHA_PASSWORD,$AHA_USER);
-    $switch = new AVM::AHA::Switch($aha,$name);
+    $aha = new AHA($AHA_HOST,$AHA_PASSWORD,$AHA_USER);
+    $switch = new AHA::Switch($aha,$name);
 
     # Check current switch state    
     $is_on = $switch->is_on;

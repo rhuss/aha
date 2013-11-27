@@ -12,7 +12,7 @@
       "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
       "version" : "2"
    },
-   "name" : "AVM-AHA",
+   "name" : "AHA",
    "prereqs" : {
       "build" : {
          "requires" : {
@@ -34,12 +34,12 @@
       }
    },
    "provides" : {
-      "AVM::AHA" : {
-         "file" : "lib/AVM/AHA.pm",
-         "version" : "0.52"
+      "AHA" : {
+         "file" : "lib/AHA.pm",
+         "version" : "0.53"
       },
-      "AVM::AHA::Switch" : {
-         "file" : "lib/AVM/AHA/Switch.pm",
+      "AHA::Switch" : {
+         "file" : "lib/AHA/Switch.pm",
          "version" : 0
       }
    },
@@ -49,5 +49,5 @@
          "http://opensource.org/licenses/gpl-license.php"
       ]
    },
-   "version" : "0.52"
+   "version" : "0.53"
 }

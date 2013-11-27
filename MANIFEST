@@ -1,6 +1,6 @@
 Build.PL
-lib/AVM/AHA.pm
-lib/AVM/AHA/Switch.pm
+lib/AHA.pm
+lib/AHA/Switch.pm
 example/lava_lamp.pl
 README.md
 LICENSE

@@ -6,8 +6,8 @@ use strict;
 
 my $build = Module::Build->new
   (
-   dist_name => "AVM-AHA",
-   dist_version_from => "lib/AVM/AHA.pm",
+   dist_name => "AHA",
+   dist_version_from => "lib/AHA.pm",
    dist_author => 'Roland Huss (roland@cpan.org)',
    dist_abstract => "Access modules for AVM's home automation system",
    installdirs => 'site',
