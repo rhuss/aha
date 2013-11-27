@@ -1,4 +1,4 @@
-## AVM::AHA
+## AHA Switch
 
 ### Description
 
@@ -13,14 +13,14 @@ To install and build the modules:
      ./Build install
 ````
 
-For more information, see the manpage to AVM::AHA.
+For more information, see the manpage to AHA.
 
 ### Example
 
 ````perl
-    my $aha = new AVM::AHA({host: "fritz.box", password: "s!cr!t"});
+    my $aha = new AHA({host: "fritz.box", password: "s!cr!t"});
 
-    # Get all switches as array ref of AVM::AHA::Switch objects
+    # Get all switches as array ref of AHA::Switch objects
     my $switches = $aha->list();
 
     # For all switches found
@@ -49,18 +49,18 @@ project. Use it on you own risk, see also below.
 
 ### License
   
-AVM::AHA is free software: you can redistribute it and/or modify it
+AHA is free software: you can redistribute it and/or modify it
 under the terms of the GNU General Public License as published by the
 Free Software Foundation, either version 2 of the License, or (at your
 option) any later version.
 
-AVM::AHA is distributed in the hope that it will be useful, but
+AHA is distributed in the hope that it will be useful, but
 WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with AVM::AHA.  If not, see <http://www.gnu.org/licenses/>.
+along with AHA.  If not, see <http://www.gnu.org/licenses/>.
 
 ### Author
 
