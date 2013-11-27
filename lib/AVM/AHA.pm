@@ -79,7 +79,7 @@ use Digest::MD5;
 use Data::Dumper;
 use vars qw($VERSION);
 
-$VERSION = "0.52";
+$VERSION = "0.53";
 
 # Set to one if some debugging should be printed
 my $DEBUG = 0;

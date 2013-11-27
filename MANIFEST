@@ -1,6 +1,7 @@
 Build.PL
 lib/AVM/AHA.pm
 lib/AVM/AHA/Switch.pm
+example/lava_lamp.pl
 README.md
 LICENSE
 MANIFEST			This list of files
