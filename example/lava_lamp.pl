@@ -3,7 +3,8 @@
 =head1 NAME
 
    lava_lamp.pl --mode [watch|list|notify] --type [problem|recovery] \
-                --name [AIN|switch name] --label <label> --debug
+                --name [AIN|switch name] --label <label> --debug \
+                --config <path-to-perl-config>
 
 =head1 DESCRIPTION
 
@@ -119,9 +120,10 @@ use Getopt::Long;
 use strict;
 
 my %opts = ();
-GetOptions(\%opts, 'type=s','mode=s','debug!','name=s','label=s');
+GetOptions(\%opts, 'type=s','mode=s','debug!','name=s','label=s','config=s');
 
 my $DEBUG = $opts{debug};
+read_config_file($opts{config}) if $opts{config};
 
 my $status = init_status();
 
@@ -190,6 +192,10 @@ if ($mode eq "list") {
 if ($DEBUG) {
     info(Dumper($status));
 }
+
+# Logout, we are done
+$aha->logout();
+
 
 # Store status and unlock
 seek(STATUS, 0, 0); truncate(STATUS, 0);
@@ -288,6 +294,15 @@ sub lamp_on_for_too_long {
     } else {
         return 0;
     }
+}
+
+sub read_config_file {
+    my $file = shift;
+    open (F,$file) || die "Cannot read config file ",$file,": ",$!;
+    my $config = join "",<F>;
+    close F;
+    eval $config;
+    die "Error evaluating $config: ",$@ if $@;    
 }
 
 =head1 LICENSE
