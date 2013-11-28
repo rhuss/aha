@@ -4,16 +4,16 @@ AHA - Simple access to the AHA interface for AVM based home automation
 
 =head1 SYNOPSIS
 
-    my $aha = new AVM::AHA({host: "fritz.box", password: "s!cr!t"});
+    my $aha = new AHA({host: "fritz.box", password: "s!cr!t"});
 
-    # Get all switches as array ref of AVM::AHA::Switch objects
+    # Get all switches as array ref of AHA::Switch objects
     my $switches = $aha->list();
 
     # For all switches found
     for my $switch (@$switches) {
        say "Name:    ",$switch->name();
        say "State:   ",$switch->is_on();
-       say "Present: ",$switch->is_present()
+       say "Present: ",$switch->is_present();
        say "Energy:  ",$switch->energy();
        say "Power:   ",$switch->power();
 

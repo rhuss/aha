@@ -184,6 +184,8 @@ if ($mode eq "list") {
         # If it is a recovery switch it off
         $switch->off();
         update_status($status,0,$mode,time,$opts{label});
+    } else {
+        info("Notification: No state change. Type = ",$type,", State = ",$is_on ? "On" : "Off");
     }
 } else {
     die "Unknow mode '",$mode,"'";
@@ -288,8 +290,7 @@ sub lamp_on_for_too_long {
         $i--;
     }
     if ($on_time >= $LAMP_MAX_TIME) {
-        info("Lamp was on for " . $on_time . " in the last " . $LAMP_MAX_TIME + $LAMP_REST_TIME . 
-             ". Not switching on therefore.");
+        info("Lamp was on for " . $on_time . " in the last " . ($LAMP_MAX_TIME + $LAMP_REST_TIME) . " and is switched off now"); 
         return 1;
     } else {
         return 0;
