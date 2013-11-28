@@ -36,7 +36,7 @@
    "provides" : {
       "AHA" : {
          "file" : "lib/AHA.pm",
-         "version" : "0.53"
+         "version" : "0.54"
       },
       "AHA::Switch" : {
          "file" : "lib/AHA/Switch.pm",
@@ -49,5 +49,5 @@
          "http://opensource.org/licenses/gpl-license.php"
       ]
    },
-   "version" : "0.53"
+   "version" : "0.54"
 }

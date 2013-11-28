@@ -196,7 +196,7 @@ if ($DEBUG) {
 }
 
 # Logout, we are done
-$aha->logout();
+$aha->logout() if $mode ne "list";
 
 
 # Store status and unlock
