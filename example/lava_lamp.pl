@@ -63,17 +63,21 @@ mode, all history entries can be viewed.
 # ===========================================================================
 # Configuration section
 
-# AVM AHA Host for controlling the devices
-my $AHA_HOST = "fritz.box";
-
-# AVM AHA Password for connecting to the $AHA_HOST
-my $AHA_PASSWORD = "s!cr!t";
-
-# AVM AHA user role (undef if no roles are in use)
-my $AHA_USER = undef;
-
-# Name of AVM AHA switch
-my $AHA_SWITCH = "Lava Lamp";
+# Configuration required for accessing the switch. 
+my $SWITCH_CONFIG = 
+    {
+     # AVM AHA Host for controlling the devices 
+     host => "fritz.box",
+     
+     # AVM AHA Password for connecting to the $AHA_HOST     
+     password => "s!cr!t",
+     
+     # AVM AHA user role (undef if no roles are in use)
+     user => undef,
+     
+     # Name of AVM AHA switch
+     id => "Lava Lamp"
+    };
 
 # Time how long the lamp should be at least be kept switched off (seconds)
 my $LAMP_REST_TIME = 60 * 60;
@@ -111,8 +115,7 @@ my $MANUAL_DELTA = 5 * 60;
 # ============================================================================
 # End of configuration
 
-use AHA;
-use Storable qw(fd_retrieve store_fd store);
+use Storable qw(fd_retrieve store_fd store retrieve);
 use Data::Dumper;
 use feature qw(say);
 use Fcntl qw(:flock);
@@ -124,37 +127,35 @@ GetOptions(\%opts, 'type=s','mode=s','debug!','name=s','label=s','config=s');
 
 my $DEBUG = $opts{debug};
 read_config_file($opts{config}) if $opts{config};
-
-my $status = init_status();
+init_status();
 
 my $mode = $opts{'mode'} || "list";
 
 # Read in status and lock file
-open (STATUS,"+<$STATUS_FILE") || die "Cannot open $STATUS_FILE: $!";
-$status = fd_retrieve(*STATUS) || die "Cannot read $STATUS_FILE: $!";
-flock(STATUS,2);
 
-my ($aha,$switch,$is_on);
 
-if ($mode ne "list") {
-    # Name and connection parameters
-    my $name = $opts{name} || $AHA_SWITCH;
-    $aha = new AHA($AHA_HOST,$AHA_PASSWORD,$AHA_USER);
-    $switch = new AHA::Switch($aha,$name);
-
-    # Check current switch state    
-    $is_on = $switch->is_on;
-
-    # Log a manual switch which might has happened in between checks or notification
-    log_manual_switch($status,$is_on);
-}
-
-if ($mode eq "list") {
+if ($mode eq "list") {   
+    my $status = retrieve $STATUS_FILE;
     # List mode
     for my $hist (@{$status}) {
         print scalar(localtime($hist->[0])),": ",$hist->[1] ? "On " : "Off"," -- ",$hist->[2],"\n";
     }
-} elsif ($mode eq "watch") {
+    exit(0);
+} 
+
+# Open status and lock
+my $status = fetch_status();
+
+# Name and connection parameters
+my $lamp = open_lamp($SWITCH_CONFIG,$opts{name});
+
+# Check current switch state    
+my $is_on = $lamp->is_on();
+
+# Log a manual switch which might has happened in between checks or notification
+log_manual_switch($status,$is_on);
+
+if ($mode eq "watch") {
    # Watchdog mode If the lamp is on but out of the period, switch it
     # off. Also, if it is running alredy for too long. $off_file can be used 
     # to switch it always off.
@@ -163,29 +164,31 @@ if ($mode eq "list") {
                    lamp_on_for_too_long($status))) {
         # Switch off lamp whether the stop file is switched on when we are off the
         # time window    
-        $switch->off();
+        $lamp->off();
         update_status($status,0,$mode);
     } 
 } elsif ($mode eq "notif") {
     my $type = $opts{type} || die "No notification type given";
-    if (lc($type) =~ /^(problem|custom)$/ && !$is_on) {
+    if (lc($type) =~ /^(problem|custom)$/ && !$is_on && check_on_period()) {
         # If it is a problem and the lamp is not on, switch it on, 
         # but only if the lamp is not 'hot' (i.e. was not switch off only 
         # $LAMP_REST_TIME
         my $last_hist = get_last_entry($status);
         my $rest_time = time - $LAMP_REST_TIME;
         if (!$last_hist || $last_hist->[0] < $rest_time) {
-            $switch->on();
+            $lamp->on();
             update_status($status,1,$mode,time,$opts{label});
         } else {
-            info("Lamp not switched on because the lamp was switched off just before ",time - $last_hist->[0]," seconds");
+            info("Lamp not switched on because the lamp was switched off just before ",
+                 time - $last_hist->[0]," seconds");
         }
     } elsif (lc($type) eq 'recovery' && $is_on) {
         # If it is a recovery switch it off
-        $switch->off();
+        $lamp->off();
         update_status($status,0,$mode,time,$opts{label});
     } else {
-        info("Notification: No state change. Type = ",$type,", State = ",$is_on ? "On" : "Off");
+        info("Notification: No state change. Type = ",$type,", State = ",$is_on ? "On" : "Off",
+            " | Check Period: ",check_on_period());
     }
 } else {
     die "Unknow mode '",$mode,"'";
@@ -196,13 +199,9 @@ if ($DEBUG) {
 }
 
 # Logout, we are done
-$aha->logout() if $mode ne "list";
+close_lamp($lamp);
 
-
-# Store status and unlock
-seek(STATUS, 0, 0); truncate(STATUS, 0);
-store_fd $status,*STATUS;
-close STATUS;
+store_status($status);
 
 # ================================================================================================
 
@@ -219,7 +218,6 @@ sub init_status {
     if (! -e $STATUS_FILE) {
         store $status,$STATUS_FILE;
     }
-    return $status;
 }
 
 sub log_manual_switch {
@@ -304,6 +302,81 @@ sub read_config_file {
     close F;
     eval $config;
     die "Error evaluating $config: ",$@ if $@;    
+}
+
+# ====================================================
+# Status file handling including locking
+
+my $status_fh;
+
+sub fetch_status {
+    open ($status_fh,"+<$STATUS_FILE") || die "Cannot open $STATUS_FILE: $!";
+    $status = fd_retrieve($status_fh) || die "Cannot read $STATUS_FILE: $!";
+    flock($status_fh,2);
+    return $status;
+}
+
+
+sub store_status {
+    my $status = shift;
+    # Store status and unlock
+    seek($status_fh, 0, 0); truncate($status_fh, 0);
+    store_fd $status,$status_fh;
+    close $status_fh;    
+}
+
+# ==========================================================================
+# Customize the following call and class in order to use a different 
+# switch than AVM AHA's
+sub open_lamp {
+    my $config = shift;
+    my $name = shift || $config->{id};
+    return new Lamp($name,
+                    $config->{host},
+                    $config->{password},
+                    $config->{user});
+}
+
+sub close_lamp {
+    my $lamp = shift;
+    $lamp->logout();
+}
+
+package Lamp;
+
+use AHA;
+
+sub new { 
+    my $class = shift;
+    my $name = shift;
+    my $host = shift;
+    my $password = shift;
+    my $user = shift;
+
+    my $aha = new AHA($host,$password,$user);
+    my $switch = new AHA::Switch($aha,$name);
+    
+    my $self = {
+                aha => $aha,
+                switch => $switch
+               };
+    return bless $self,$class;
+}
+
+sub is_on {
+    shift->{switch}->is_on();
+}
+
+sub on { 
+    shift->{switch}->on();
+}
+
+sub off { 
+    shift->{switch}->off();
+}
+
+sub logout {
+    shift->{aha}->logout();
 }
 
 =head1 LICENSE
