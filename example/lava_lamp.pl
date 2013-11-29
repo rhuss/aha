@@ -112,6 +112,9 @@ my $OFF_FILE = "/tmp/lamp_off";
 # that amount of seconds in the past (5 minutes here)
 my $MANUAL_DELTA = 5 * 60;
 
+# Maximum number of history entries to store
+my $MAX_HISTORY_ENTRIES = 1000;
+
 # ============================================================================
 # End of configuration
 
@@ -131,17 +134,8 @@ init_status();
 
 my $mode = $opts{'mode'} || "list";
 
-# Read in status and lock file
-
-
-if ($mode eq "list") {   
-    my $status = retrieve $STATUS_FILE;
-    # List mode
-    for my $hist (@{$status}) {
-        print scalar(localtime($hist->[0])),": ",$hist->[1] ? "On " : "Off"," -- ",$hist->[2],"\n";
-    }
-    exit(0);
-} 
+# List mode doesnt need a connection
+list() and exit if $mode eq "list";
 
 # Open status and lock
 my $status = fetch_status();
@@ -159,33 +153,50 @@ if ($mode eq "watch") {
    # Watchdog mode If the lamp is on but out of the period, switch it
     # off. Also, if it is running alredy for too long. $off_file can be used 
     # to switch it always off.
+    my $in_period = check_on_period();
     if ($is_on && (-e $OFF_FILE || 
-                   !check_on_period() || 
+                   !$in_period || 
                    lamp_on_for_too_long($status))) {
         # Switch off lamp whether the stop file is switched on when we are off the
         # time window    
         $lamp->off();
         update_status($status,0,$mode);
-    } 
+    } elsif (!$is_on && $in_period && has_trigger($status)) {
+        $lamp->on();
+        update_status($status,1,"notif",trigger_label($status));
+        delete_trigger($status);
+    }
 } elsif ($mode eq "notif") {
     my $type = $opts{type} || die "No notification type given";
-    if (lc($type) =~ /^(problem|custom)$/ && !$is_on && check_on_period()) {
-        # If it is a problem and the lamp is not on, switch it on, 
-        # but only if the lamp is not 'hot' (i.e. was not switch off only 
-        # $LAMP_REST_TIME
-        my $last_hist = get_last_entry($status);
-        my $rest_time = time - $LAMP_REST_TIME;
-        if (!$last_hist || $last_hist->[0] < $rest_time) {
-            $lamp->on();
-            update_status($status,1,$mode,time,$opts{label});
+    if (lc($type) =~ /^(problem|custom)$/ && !$is_on) {
+        if (check_on_period()) {
+            # If it is a problem and the lamp is not on, switch it on, 
+            # but only if the lamp is not 'hot' (i.e. was not switch off only 
+            # $LAMP_REST_TIME
+            my $last_hist = get_last_entry($status);
+            my $rest_time = time - $LAMP_REST_TIME;
+            if (!$last_hist || $last_hist->[0] < $rest_time) {
+                $lamp->on();
+                update_status($status,1,$mode,time,$opts{label});
+            } else {
+                info("Lamp not switched on because the lamp was switched off just before ",
+                     time - $last_hist->[0]," seconds");
+            }
         } else {
-            info("Lamp not switched on because the lamp was switched off just before ",
-                 time - $last_hist->[0]," seconds");
+            # Notification received offtime, remember to switch on the lamp
+            # when in time
+            info("Notification received in an off-period: type = ",$type," | ",$opts{label});
+            set_trigger($status,$opts{label});
         }
-    } elsif (lc($type) eq 'recovery' && $is_on) {
-        # If it is a recovery switch it off
-        $lamp->off();
-        update_status($status,0,$mode,time,$opts{label});
+    } elsif (lc($type) eq 'recovery') {
+        if ($is_on) {
+            # If it is a recovery switch it off
+            $lamp->off();
+            update_status($status,0,$mode,time,$opts{label});
+        } else {
+            # It's already off, but remove any trigger marker
+            delete_trigger($status);
+        }
     } else {
         info("Notification: No state change. Type = ",$type,", State = ",$is_on ? "On" : "Off",
             " | Check Period: ",check_on_period());
@@ -212,9 +223,20 @@ sub info {
     }
 }
 
+# List the status file
+sub list {
+    my $status = retrieve $STATUS_FILE;
+    my $hist_entries = $status->{hist};
+    for my $hist (@{$hist_entries}) {
+        print scalar(localtime($hist->[0])),": ",$hist->[1] ? "On " : "Off"," -- ",$hist->[2]," : ",$hist->[3],"\n";
+    }
+    return 1;
+} 
+
 # Create empty status file if necessary
 sub init_status {
-    my $status = [];
+    my $status = {};
+    $status->{hist} = [];
     if (! -e $STATUS_FILE) {
         store $status,$STATUS_FILE;
     }
@@ -236,7 +258,8 @@ sub update_status {
     my $mode = shift;
     my $time = shift || time;
     my $label = shift;
-    push @{$status},[ $time, $is_on, $mode];
+    my $hist = $status->{hist};
+    push @{$hist},[ $time, $is_on, $mode, $label];
     info($is_on ? "On " : "Off"," -- ",$mode, $label ? ": " . $label : "");
 }
 
@@ -255,7 +278,11 @@ sub estimate_manual_time {
 
 sub get_last_entry {
     my $status = shift;
-    return $status && @$status ? $status->[$#{$status}] : undef;
+    if ($status) {
+        my $hist = $status->{hist};
+        return  $hist && @$hist ? $hist->[$#{$hist}] : undef;
+    }
+    return undef;
 }
 
 sub check_on_period {
@@ -280,10 +307,11 @@ sub lamp_on_for_too_long {
     my $current = time;
     my $low_time = $current - $LAMP_MAX_TIME - $LAMP_REST_TIME;
     my $on_time = 0;
-    my $i = $#{$status};
+    my $hist = $status->{hist};
+    my $i = $#{$hist};
     while ($current > $low_time && $i >= 0) {
-        my $t = $status->[$i]->[0];
-        $on_time += $current - $t if $status->[$i]->[1];
+        my $t = $hist->[$i]->[0];
+        $on_time += $current - $t if $hist->[$i]->[1];
         $current = $t;
         $i--;
     }
@@ -304,6 +332,27 @@ sub read_config_file {
     die "Error evaluating $config: ",$@ if $@;    
 }
 
+sub delete_trigger {
+    my $status = shift;
+    delete $status->{trigger_mark};
+    delete $status->{trigger_label};
+}
+
+sub set_trigger {
+    my $status = shift;
+    my $label = shift;
+    $status->{trigger_mark} = 1;
+    $status->{trigger_label} = $label;
+}
+
+sub has_trigger {
+    return shift->{trigger_mark};
+}
+
+sub trigger_label {
+    return shift->{trigger_label};
+}
+
 # ====================================================
 # Status file handling including locking
 
@@ -319,10 +368,22 @@ sub fetch_status {
 
 sub store_status {
     my $status = shift;
+    
+    # Truncate history if necessary
+    truncate_hist($status);
     # Store status and unlock
     seek($status_fh, 0, 0); truncate($status_fh, 0);
     store_fd $status,$status_fh;
     close $status_fh;    
+}
+
+sub truncate_hist {
+    my $status = shift;
+
+    my $hist = $status->{hist};
+    my $len = scalar(@$hist);
+    splice @$hist,0,$len - $MAX_HISTORY_ENTRIES if $len > $MAX_HISTORY_ENTRIES;
+    $status->{hist} = $hist;
 }
 
 # ==========================================================================

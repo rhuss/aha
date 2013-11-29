@@ -27,6 +27,9 @@ AHA - Simple access to the AHA interface for AVM based home automation
     # ... or by AIN
     $aha->energy("087610077197");
 
+    # Logout 
+    $aha->logout();
+
 =head1 DESCRIPTION 
 
 This module allows programatic access to AVM's Home Automation (AHA) system as
