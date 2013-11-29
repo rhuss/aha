@@ -163,7 +163,7 @@ if ($mode eq "watch") {
         update_status($status,0,$mode);
     } elsif (!$is_on && $in_period && has_trigger($status)) {
         $lamp->on();
-        update_status($status,1,"notif",trigger_label($status));
+        update_status($status,1,"notif",undef,trigger_label($status));
         delete_trigger($status);
     }
 } elsif ($mode eq "notif") {
