@@ -230,6 +230,7 @@ sub list {
     for my $hist (@{$hist_entries}) {
         print scalar(localtime($hist->[0])),": ",$hist->[1] ? "On " : "Off"," -- ",$hist->[2]," : ",$hist->[3],"\n";
     }
+    print "Content: ",Dumper($status) if $DEBUG;
     return 1;
 } 
 
@@ -316,7 +317,7 @@ sub lamp_on_for_too_long {
         $i--;
     }
     if ($on_time >= $LAMP_MAX_TIME) {
-        info("Lamp was on for " . $on_time . " in the last " . ($LAMP_MAX_TIME + $LAMP_REST_TIME) . " and is switched off now"); 
+        info("Lamp was on for " . $on_time . "s in the last " . ($LAMP_MAX_TIME + $LAMP_REST_TIME) . "s and is switched off now"); 
         return 1;
     } else {
         return 0;
