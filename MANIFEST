@@ -8,4 +8,5 @@ MANIFEST			This list of files
 META.yml
 META.json
 MANIFEST.SKIP
+ChangeLog
 t/70_pod.t
