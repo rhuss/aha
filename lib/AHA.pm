@@ -82,7 +82,7 @@ use Digest::MD5;
 use Data::Dumper;
 use vars qw($VERSION);
 
-$VERSION = "0.54";
+$VERSION = "0.55";
 
 # Set to one if some debugging should be printed
 my $DEBUG = 0;
@@ -156,7 +156,7 @@ is returned.
 
 sub list {
     my $self = shift;
-    return [ map { new AHA::Switch($self,$_) }  (split /\*,\*/,$self->_execute_cmd("getswitchlist")) ];
+    return [ map { new AHA::Switch($self,$_) }  (split /\s*,\s*/,$self->_execute_cmd("getswitchlist")) ];
 }
 
 =item $aha->is_on($ain)
