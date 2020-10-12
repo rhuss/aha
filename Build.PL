@@ -22,6 +22,11 @@ my $build = Module::Build->new
                       "Test::More" => "0",
                      },                       
    configure_requires => { 'Module::Build' => 0.34 },
+   meta_add => {
+       resources => {
+           repository => 'https://github.com/rhuss/aha',
+       },
+   },
    keywords => [  "AVM", "AHA", "Fritz", "Dect!200" ]
   );
 
