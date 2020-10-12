@@ -16,7 +16,7 @@ AHA - Simple access to the AHA interface for AVM based home automation
        say "Present: ",$switch->is_present();
        say "Energy:  ",$switch->energy();
        say "Power:   ",$switch->power();
-       say "Temp.°C: ",$switch->temperature / 10;
+       say "Temp.°C: ",$switch->temperature() / 10;
 
        # If switch is on, switch if off and vice versa
        $switch->is_on() ? $switch->off() : $switch->on();
