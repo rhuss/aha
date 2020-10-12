@@ -16,6 +16,7 @@ AHA - Simple access to the AHA interface for AVM based home automation
        say "Present: ",$switch->is_present();
        say "Energy:  ",$switch->energy();
        say "Power:   ",$switch->power();
+       say "Temp.°C: ",$switch->temperature / 10;
 
        # If switch is on, switch if off and vice versa
        $switch->is_on() ? $switch->off() : $switch->on();
@@ -231,6 +232,18 @@ If the switch is not connected, C<undef> is returned.
 sub power {
     my $self = shift;
     return &_inval_check($self->_execute_cmd("getswitchpower",$self->_ain(shift)));
+}
+
+=item $temperature = $aha->temperature($ain)
+
+Get the current temperature of the switch C<$ain> in 0,1 °C.
+If the switch is not connected, C<undef> is returned.
+
+=cut
+
+sub temperature {
+    my $self = shift;
+    return &_inval_check($self->_execute_cmd("gettemperature",$self->_ain(shift)));
 }
 
 =item $name = $aha->name($ain)
