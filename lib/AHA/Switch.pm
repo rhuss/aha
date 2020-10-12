@@ -72,6 +72,8 @@ sub ain {
 
 =item $switch->power()
 
+=item $switch->temperature()
+
 =item $switch->name()
 
 Same as the corresponding method in L<"AHA"> with the exception, that no
@@ -82,7 +84,8 @@ construction time
 
 =cut
 
-my %SUPPORTED_METHODS = (map { $_ => 1 } qw(is_on is_present on off energy power name));
+my %SUPPORTED_METHODS =
+  map { $_ => 1 } qw(is_on is_present on off energy power temperature name);
 
 sub AUTOLOAD {
     my $self = shift;
