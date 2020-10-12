@@ -4,7 +4,7 @@ AHA - Simple access to the AHA interface for AVM based home automation
 
 =head1 SYNOPSIS
 
-    my $aha = new AHA({host: "fritz.box", password: "s!cr!t"});
+    my $aha = AHA->new( { host => "fritz.box", password => "s!cr!t" } );
 
     # Get all switches as array ref of AHA::Switch objects
     my $switches = $aha->list();
