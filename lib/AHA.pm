@@ -259,7 +259,7 @@ sub name {
     return $self->_execute_cmd("getswitchname",$ain);
 }
 
-=item $ain = $aha->ain($name)
+=item $ain = $aha->ain_by_name($name)
 
 This is the inverse method to C<name()>. It takes a symbolic name C<$name> as
 argument and returns the AIN. If no such name is registered, an error is
