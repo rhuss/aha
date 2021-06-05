@@ -1,3 +1,11 @@
+2021-06-05  Martin Sluka <perl@sluka.de>
+
+        * Released 0.6
+
+	* added method ->temperature
+	* added repository URL
+	* fixed documentation
+
 2014-05-28  Roland Huss  <roland@consol.de>
 
 	* Released 0.55
